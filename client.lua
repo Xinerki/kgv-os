@@ -276,7 +276,7 @@ Citizen.CreateThread(function()
 			RegisterNamedRendertarget("prop_ex_computer_screen", 0)
 			LinkNamedRendertarget(iVar0)
 			if (not IsNamedRendertargetLinked(iVar0)) then
-				ReleaseNamedRendertarget("prop_ex_computer_screen")
+				-- ReleaseNamedRendertarget("prop_ex_computer_screen")
 				-- return false
 			end
 		end
