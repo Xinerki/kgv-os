@@ -18,42 +18,16 @@ end
 
 	Task list:
 	[x] Icons
-	[ ] Windows. Yes.
+	[x] Windows. Yes.
 	[x] Handle input
 	[x] Proper way to enter the monitor
+	[ ] Fix resolution or move to another render target
+	[ ] Better icon/window dragging
+	[x] Some fancy program like a browser
+	[ ] Games.
+	[?] Basic sync across clients?
 
 ]]
-
-dekstopIcons = {
-	myComputer = {
-		name = "cwOS",
-		position = vector2(0.05, 0.1),
-		iconDir = "desktop_pc",
-		icon = "icon_my_computer",
-		programToOpen = nil,
-	},
-	usb = {
-		name = "USB Device",
-		position = vector2(0.15, 0.1),
-		iconDir = "desktop_pc",
-		icon = "usb",
-		programToOpen = nil,
-	},
-	trashBin = {
-		name = "Trash Bin",
-		position = vector2(0.95, 0.85),
-		iconDir = "desktop_pc",
-		icon = "bin",
-		programToOpen = nil,
-	},
-	ambiguXfiles = {
-		name = "ambiguX\nreports",
-		position = vector2(0.05, 0.3),
-		iconDir = "desktop_pc",
-		icon = "folder",
-		programToOpen = nil,
-	},
-}
 
 windows = {
 	welcomeMessage = {
@@ -103,12 +77,134 @@ windows = {
 				DrawText(posX, posY+0.17)
 			end,
 		},
-		open = true,
+		open = false,
+	},
+	
+	browser = {
+		position = vector2(0.5, 0.5),
+		size = vector2(0.7, 0.6),
+		link = "http://fivem.net/",
+		initialized = false,
+		content = {
+			browserBar = function(posX, posY)
+				DrawRect(posX, posY-(0.6/2)+(0.06), 0.7, 0.04, 50, 50, 50, 150)
+				if windows.browser.initialized == false then
+					webX, webY = 800, 400
+					if not duiObj and not txd then
+						txd = CreateRuntimeTxd('os_browser')
+						duiObj = CreateDui(windows.browser.link, webX, webY)
+					
+						_G.duiObj = duiObj
+
+						dui = GetDuiHandle(duiObj)
+						tx = CreateRuntimeTextureFromDuiHandle(txd, 'os_browser_tex', dui)
+					end
+					initialized = true
+				end
+			end,
+			browserLink = function(posX, posY)	
+				SetTextFont(0)
+				SetTextProportional(1)
+				SetTextScale(0.0, 0.15)
+				SetTextColour(255, 255, 255, 255)
+				SetTextDropshadow(0, 0, 0, 0, 255)
+				SetTextEdge(2, 0, 0, 0, 150)
+				SetTextDropShadow()
+				SetTextOutline()
+				SetTextEntry("STRING")
+				SetTextCentre(0)
+				AddTextComponentString(windows.browser.link)
+				DrawText(posX-0.3, posY-0.27)
+			end,
+			browser = function(posX, posY)
+				if duiObj and txd then
+					DrawSprite('os_browser', 'os_browser_tex', posX, posY+0.06, windows.browser.size.x, windows.browser.size.y-0.06, 0.0, 255, 255, 255, 255)
+					
+					local x = ((cursorX - posX+(0.7/2))/windows.browser.size.x)*webX
+					local y = ((cursorY - posY+(0.6/2))/windows.browser.size.y-0.06)*webY
+					
+					local x = math.floor(math.min(math.max(x, 0.0), webX))
+					local y = math.floor(math.min(math.max(y, 0.0), webY))
+					
+					SendDuiMouseMove(duiObj, x, y) -- TODO: Fix offsets
+				
+					if (IsControlJustPressed(3, 180)) then -- SCROLL DOWN
+						SendDuiMouseWheel(duiObj, -150, 0.0)
+					end
+
+					if (IsControlJustPressed(3, 181)) then -- SCROLL UP
+						SendDuiMouseWheel(duiObj, 150, 0.0)
+					end
+
+					if (IsControlJustPressed(3, 176)) then -- PRESS DOWN
+						SendDuiMouseDown(duiObj, 'left')
+					end
+
+					if (IsControlJustReleased(3, 176)) then -- PRESS UP
+						SendDuiMouseUp(duiObj, 'left')
+					end
+				end
+			end,
+		},
+		click = function(x, y, posX, posY)
+			if y > posY-(0.6/2)+(0.06) and y < (posY-(0.6/2)+(0.06))+0.04 then
+				DrawRect(x, y, 0.1, 0.1, 255, 15, 15, 255) -- DEBUG RECT, LEAVE IT!
+				Citizen.CreateThread(function()
+					N_0x3ed1438c1f5c6612(2)
+					DisplayOnscreenKeyboard(0, "FMMC_KEY_TIP8", "", windows.browser.link or "", "", "", "", 60)
+					repeat Wait(0) until UpdateOnscreenKeyboard() ~= 0
+					if UpdateOnscreenKeyboard() == 1 then
+						windows.browser.link = GetOnscreenKeyboardResult()
+						SetDuiUrl(duiObj, windows.browser.link)
+					end
+				end)
+			end
+		end,
+		open = false,
+	},
+}
+
+dekstopIcons = {
+	myComputer = {
+		name = "cwOS",
+		position = vector2(0.05, 0.1),
+		iconDir = "desktop_pc",
+		icon = "icon_my_computer",
+		programToOpen = nil,
+	},
+	usb = {
+		name = "USB Device",
+		position = vector2(0.15, 0.1),
+		iconDir = "desktop_pc",
+		icon = "usb",
+		programToOpen = nil,
+	},
+	trashBin = {
+		name = "Trash Bin",
+		position = vector2(0.95, 0.85),
+		iconDir = "desktop_pc",
+		icon = "bin",
+		programToOpen = nil,
+	},
+	ambiguXfiles = {
+		name = "ambiguX\nreports",
+		position = vector2(0.05, 0.3),
+		iconDir = "desktop_pc",
+		icon = "folder",
+		programToOpen = nil,
+	},
+	browser = {
+		name = "Browser",
+		position = vector2(0.15, 0.3),
+		iconDir = "desktop_pc",
+		icon = "icon_antivirus",
+		programToOpen = windows.browser,
 	},
 }
 
 function ProcessDesktop()
 	if HasStreamedTextureDictLoaded("commonmenu") then		
+		-- DrawSprite("meows", "woof", 0.5, 0.5, 1.0, 1.0, 0, 240, 25, 63, 255, 0)
 		DrawSprite("commonmenu", "interaction_bgd", 0.5, 0.5, 1.0, 1.0, 0, 240, 25, 63, 255, 0)
 	end
 	DrawRect(0.0, 1.0, 2.0, 0.1, 100, 100, 255, 100) -- TASKBAR
@@ -142,13 +238,20 @@ function ProcessDesktop()
 			DrawRect(wx, wy, sx, sy, 255, 250, 250, 150)
 			DrawRect(wx, wy-(sy/2)+(0.04/2), sx, 0.04, 255, 150, 150, 150)
 			DrawRect(wx+(sx/2)-(0.04/2), wy-(sy/2)+(0.04/2), 0.04, 0.04, 255, 50, 50, 150)
+			if cursorX > wx-(sx/2) and cursorX < wx+(sx/2) and cursorY > wy-(sy/2) and cursorY < wy+(sy/2) then
+				if IsControlJustPressed(0, 176) then
+					if v.click then
+						v.click(cursorX, cursorY, wx, wy)
+					end
+				end
+			end
 			if cursorX > wx-(sx/2) and cursorY > wy-(sy/2) and cursorX < wx+(sx/2) and cursorY < wy-(sy/2)+(0.04) then
 				if IsControlPressed(0, 176) then
 					if IsControlJustPressed(0, 176) then
 						tick = 0
 					end
 					if tick > 5 then
-						local tempVector = vector2(cursorX, cursorY+(sx/2)-(0.04))
+						local tempVector = vector2(cursorX, cursorY+(sx/2)-(0.08))
 						v.position = tempVector
 					end
 				end
@@ -190,8 +293,10 @@ function ProcessDesktop()
 					v.position = tempVector
 				end
 			else
-				if v.programToOpen then
-					-- TODO: open a window here
+				if cursorX > ix-(0.1/2) and cursorY > iy-(0.1) and
+				   cursorX < ix+(0.1/2) and cursorY < iy+(0.1) and
+				   v.programToOpen then
+					v.programToOpen.open = true
 				end
 			end
 		end
